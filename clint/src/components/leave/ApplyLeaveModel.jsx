@@ -79,7 +79,6 @@ const ApplyLeaveModel = ({open, onClose, onSuccess}) => {
                     {loading ? 'Submitting...' : 'Submit Request'}
                 
             </button>
-
             </div>
 
 

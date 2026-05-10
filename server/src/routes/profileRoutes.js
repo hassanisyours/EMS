@@ -1,10 +1,10 @@
 import { Router } from "express";
-import profileController from "../controllers/profileController";
-import authMiddleware from "../middlewares/authMiddleware";
+import profileController from "../controllers/profileController.js";
+import authMiddleware from "../middlewares/authMiddleware.js";
 
 const profileRouter = Router()
 
 profileRouter.get('/',authMiddleware.protect,profileController.getProfileController)
-profileRouter.get('/',authMiddleware.protect,profileController.updateProfileController)
+profileRouter.patch('/',authMiddleware.protect,profileController.updateProfileController)
 
 export default profileRouter

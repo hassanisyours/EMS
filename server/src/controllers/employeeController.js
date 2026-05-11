@@ -1,5 +1,6 @@
 // get EMPLOYEEE /
 
+import bcrypt from "bcryptjs";
 import employModel from "../models/EmployeeModel.js";
 import userModel from '../models/UserModel.js'
 
@@ -13,7 +14,7 @@ const getEmployeeController = async (req,res) => {
             where.department = department;
 
         };
-            const employees = (await employModel.find(where)).toSorted({createdAt: -1}).populate('userId','email role').lean();
+            const employees = await employModel.find(where).sort({createdAt: -1}).populate('userId','email role').lean();
         const result = employees.map((emp)=>({
             ...emp,
             id: emp._id.toString(),
@@ -23,7 +24,7 @@ const getEmployeeController = async (req,res) => {
         return res.json(result)
             
     } catch (err) {
-        return res.status(500).json({err,message: 'Failed to fetch employee'}) 
+            return res.status(500).json({message: 'Failed to fetch employee'}) 
     }
 }
 
@@ -32,7 +33,7 @@ const getEmployeeController = async (req,res) => {
 //POST /api/employees
 const createEmployeeController = async (req,res) => {
     try {
-        const {firstName , lastName , email ,phone, position, department,basicSalary,allowances,deductions,joinDate,password,role,bio} = req.body;
+        const {firstName , lastName , email ,phone, position, department,basicSalary,allowances,deductions,joinDate,password,role,bio,employmentStatus} = req.body;
         
         if (!email || !password || !firstName || !lastName) {
                 return res.status(400).json({error: 'Missing required fields'})
@@ -55,10 +56,11 @@ const createEmployeeController = async (req,res) => {
             position,
             department : department || 'Engineering',
             basicSalary: Number(basicSalary) || 0,
-            allowances: Number(basicSalary) || 0,
-            deductions: Number(basicSalary) || 0,
+            allowances: Number(allowances) || 0,
+            deductions: Number(deductions) || 0,
             joinDate: new Date(joinDate),
-            bio: bio || ''
+            bio: bio || '',
+            employmentStatus: employmentStatus || 'ACTIVE'
 
         })
 
@@ -69,10 +71,10 @@ const createEmployeeController = async (req,res) => {
     } catch (err) {
         if (err.code === 11000) {
             
-            return res.status(400).json({err,message: 'email already exists'}) 
+            return res.status(400).json({message: 'email already exists'}) 
         }
         console.error('Create employee error:' ,err)
-        return res.status(500).json({err,message: 'Failed to create employee'}) 
+        return res.status(500).json({message: 'Failed to create employee'}) 
         
     }
 }
@@ -91,8 +93,7 @@ const updateEmployeeController = async (req,res) => {
 
 
 
-        await employModel.findByIdAndUpdate({
-          
+        const updateData = {
             firstName,
             lastName,
             email,
@@ -100,23 +101,24 @@ const updateEmployeeController = async (req,res) => {
             position,
             department : department || 'Engineering',
             basicSalary: Number(basicSalary) || 0,
-            allowances: Number(basicSalary) || 0,
-            deductions: Number(basicSalary) || 0,
+            allowances: Number(allowances) || 0,
+            deductions: Number(deductions) || 0,
            employmentStatus: employmentStatus || 'ACTIVE',
             bio: bio || ''
+        }
 
-        })
+        await employModel.findByIdAndUpdate(id, updateData, { new: true })
 
         // Update user record 
 
         const userUpdate = {email};
         if (role) {
-            userModel.role = role;
+            userUpdate.role = role;
         }
         
 
         if (password) {
-            userModel.password = await bcrypt.hash(password,10)
+            userUpdate.password = await bcrypt.hash(password,10)
         }
        
         await userModel.findByIdAndUpdate(employee.userId,userUpdate)
@@ -127,9 +129,9 @@ const updateEmployeeController = async (req,res) => {
     } catch (err) {
         if (err.code === 11000) {
             
-            return res.status(400).json({err,message: 'email already exists'}) 
+            return res.status(400).json({message: 'email already exists'}) 
         }
-        return res.status(500).json({err,message: 'Failed to update employee'}) 
+        return res.status(500).json({message: 'Failed to update employee'}) 
         
     }
 

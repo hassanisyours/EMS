@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { href, Link, useLocation } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { dummyProfileData } from '../assets/assets'
 import { CalendarIcon, ChevronRightIcon, DollarSignIcon, FileTextIcon, LayoutGridIcon, LogOutIcon, MenuIcon, SettingsIcon, UserIcon, XIcon } from 'lucide-react'
 const Sidebar = () => {
@@ -22,7 +22,7 @@ const Sidebar = () => {
 
     }, [pathname])
 
-    const role = '' || 'EMPLOYEE' ;
+    const role = localStorage.getItem('role') || 'EMPLOYEE';
     const navItems = [
         {name: 'Dashboard', href: '/dashboard', icon: LayoutGridIcon},
         role === 'ADMIN' ?  {name: 'Employees', href: '/employees', icon: UserIcon} : {name: 'Attendance', href: '/attendance', icon: CalendarIcon},
@@ -33,6 +33,8 @@ const Sidebar = () => {
     ]
 
     const handleLogout = ()=>{
+        localStorage.removeItem('token')
+        localStorage.removeItem('role')
         window.location.href = '/login'
     }
 
@@ -63,7 +65,7 @@ const Sidebar = () => {
                     </div>
                     <div className='min-w-0 '>
                     <p className='text-[13px] font-medium text-slate-200 truncate'>{username}</p>
-                    <p className='text-[11px] text-slate-500 truncate'>{role === 'admin' ? 'administrator': 'Eployee'}</p>
+                    <p className='text-[11px] text-slate-500 truncate'>{role === 'ADMIN' ? 'administrator': 'Employee'}</p>
                     </div>
                 </div>
             </div>)}

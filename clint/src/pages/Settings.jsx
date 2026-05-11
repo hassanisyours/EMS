@@ -11,10 +11,25 @@ const Settings = () => {
     const [showpasswordModel, setShowpasswordModel] = useState(false)
 
     const fetchProfile = async () => {
-      await setProfile(dummyProfileData)
-      setTimeout(() => {
+      try {
+        const token = localStorage.getItem('token')
+        const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/profile`, {
+          headers: {
+            Authorization: token ? `Bearer ${token}` : ''
+          }
+        })
+
+        if (!response.ok) {
+          throw new Error('Failed to load profile')
+        }
+
+        const data = await response.json()
+        setProfile(data)
+      } catch (error) {
+        setProfile(dummyProfileData)
+      } finally {
         setLoading(false)
-      }, 1000);
+      }
     }
 
       useEffect(() => {

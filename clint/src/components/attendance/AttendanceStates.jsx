@@ -4,17 +4,20 @@ import React from 'react'
 const AttendanceStates = ({history}) => {
 
     const totalPresent = history.filter((h)=>{
-            h.status === 'PRESENT' || h.status === 'LATE'
+            return h.status === 'PRESENT' || h.status === 'LATE'
     }).length;
 
-    const totelLate = history.filter((h)=>{
-           h.status === 'LATE'
+    const totalLate = history.filter((h)=>{
+           return h.status === 'LATE'
     }).length;
+
+    const totalHours = history.reduce((sum, item) => sum + (Number(item.workingHours) || 0), 0);
+    const avgHours = history.length ? (totalHours / history.length).toFixed(1) : '0.0';
 
     const stats = [
         {label: "Days Present",value: totalPresent,icon: CalendarIcon},
-        {label: "Late Arrivals",value: totalPresent,icon: AlertCircleIcon},
-        {label: "Avg. Works Hour",value: '8.5 hour',icon: ClockIcon}
+        {label: "Late Arrivals",value: totalLate,icon: AlertCircleIcon},
+        {label: "Avg. Work Hours",value: `${avgHours} hour`,icon: ClockIcon}
     ]
 
   return (

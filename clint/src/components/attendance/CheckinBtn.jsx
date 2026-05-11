@@ -14,21 +14,21 @@ const CheckinBtn = ({todayRecord, onAction}) => {
         }, 1000);
     }
 
-    if (todayRecord?.checkout) {
+    if (todayRecord?.checkOut) {
         return (<div className='flex flex-col items-center justify-center p-8 bg-slate-50 rounded-2xl border border-slate-200'>
             <h3 className='text-lg font-bold text-slate-900'>Work day completed </h3>
             <p className='text-slate-500 text-sm mt-1'>Great job! see you tomorrow </p>
         </div>)
     }    
 
-    const isCheckedin = !!todayRecord?.isCheckedin
+    const isCheckedin = !!todayRecord?.checkIn && !todayRecord?.checkOut
 
   return (
     <div  className='absolute bottom-4 right-4 flex flex-col z-1'>
         <button onClick={handleAttendance} disabled={loading} className={`w-full max-w-xs flex justify-between items-center gap-8 p-4 rounded-xl bg-linear-to-br text-white ${isCheckedin ? "from-slate-700 to-slate-900" : 'from-indigo-600 to-indigo-700'}`}>{loading ? <Loader2Icon className='size-7 animate-spin'/> : isCheckedin ? <LogOutIcon className='size-7'/> : <LogInIcon className='size-7'/> }
          <div className='relative flex flex-col items-center text-center'>
             <h2 className='text-lg font-medium mb-1'>{loading ? "Processing..." : isCheckedin ? "Clock out" : 'Clock in'}</h2>
-            <p className='text-xs opacity-80'>{isCheckedin ? 'Click to end your ship' : 'Start your work day'}</p>
+            <p className='text-xs opacity-80'>{isCheckedin ? 'Click to end your shift' : 'Start your work day'}</p>
             </div> </button>
     </div>
   )

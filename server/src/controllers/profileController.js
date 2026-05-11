@@ -6,15 +6,17 @@ import employModel from "../models/EmployeeModel.js"
 const getProfileController  = async (req,res) => {
  try {
     const session = req.session
-    const employee = employModel.findOne({userId: session.userId})
+    const employee = await employModel.findOne({userId: session.userId}).lean()
 
     if(!employee){
         return res.json({
+            _id: session.userId,
             firstName: 'Admin',
-            lastName:'',
-            email:session.email,
-
-
+            lastName: '',
+            email: session.email,
+            position: 'Administrator',
+            bio: '',
+            isDeleted: false,
         })}
 
         return res.json(employee)
@@ -33,8 +35,10 @@ const updateProfileController = async (req,res) => {
     try {
 
          const session = req.session
-    const employee = employModel.findOne({userId: session.userId})
-              if(!employee)return res.status(404).json({error: 'Employee not found'})
+    const employee = await employModel.findOne({userId: session.userId})
+              if(!employee){
+                return res.json({success: true})
+              }
               if(employee.isDeleted)return res.status(403).json({error: 'Your account is deactivated. you can not update your profile'})
 
                 await employModel.findByIdAndUpdate(employee._id,{bio:req.body.bio})

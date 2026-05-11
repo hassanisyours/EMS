@@ -9,7 +9,8 @@ const DashBoard = () => {
 
 
   useEffect(() => {
-    setdata(dummyAdminDashboardData)
+    const role = localStorage.getItem('role') || 'EMPLOYEE'
+    setdata(role === 'ADMIN' ? dummyAdminDashboardData : dummyEmployeeDashboardData)
     setTimeout(() => {
       
       setLoading(false)

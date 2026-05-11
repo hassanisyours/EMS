@@ -6,6 +6,34 @@ const ChangePassModel = ({open,onClose}) => {
   const [message, setMessage] = useState({type: '',text: ''})
   const handleSubmit = async (e) => {
     e.preventDefault()
+    try {
+      setLoading(true)
+      setMessage({type: '', text: ''})
+      const formData = new FormData(e.currentTarget)
+      const payload = Object.fromEntries(formData.entries())
+      const token = localStorage.getItem('token')
+
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/auth/change-password`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: token ? `Bearer ${token}` : ''
+        },
+        body: JSON.stringify(payload)
+      })
+
+      const data = await response.json()
+      if (!response.ok) {
+        throw new Error(data?.error || 'Failed to update password')
+      }
+
+      setMessage({type: 'success', text: 'Password updated successfully'})
+      e.currentTarget.reset()
+    } catch (error) {
+      setMessage({type: 'error', text: error.message})
+    } finally {
+      setLoading(false)
+    }
   }
 
   if (!open) {
@@ -27,7 +55,7 @@ const ChangePassModel = ({open,onClose}) => {
       <form onSubmit={handleSubmit} className='p-6 space-y-5'>
           {message.text && (
             <div className={`p-3 rounded-xl text-sm flex items-start gap-3 ${message.type === 'success' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200': 'bg-rose-50 text-rose-700 border border-rose-200'}`}>
-              <div className={`w-1.5 h-1.5 rounded-full mt-1.5 shrink-0${message.type === 'success' ? "bg-emerald-500" : 'bg-rose-500'}`}/>
+              <div className={`w-1.5 h-1.5 rounded-full mt-1.5 shrink-0 ${message.type === 'success' ? "bg-emerald-500" : 'bg-rose-500'}`}/>
               {message.text}
               </div>
           )}

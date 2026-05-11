@@ -8,7 +8,7 @@ const EmployeeCard = ({ employee, onDelete, onEdit }) => {
                 
             }
 
-            
+            onDelete?.(employee)
     }
 
 

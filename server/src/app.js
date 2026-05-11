@@ -27,6 +27,8 @@ app.use('/api/attendance',AttendanceRoutes)
 app.use('/api/leave',leaveRoutes)
 app.use('/api/payslip',PaySlipRouter)
 app.use('/api/dashboard',DashboardRoutes)
-
+app.get('/',(req,res)=>{
+    res.send('HIII')
+})
 
 export default app;

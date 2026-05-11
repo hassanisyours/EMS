@@ -1,9 +1,9 @@
-import  jwt  from "jsonwebtoken";
+import jwt from "jsonwebtoken";
 
 
 const protect = async (req,res,next) => {
   try {
-      const authHeader = req.headers.autherization
+      const authHeader = req.headers.authorization;
       if (!authHeader || !authHeader.startsWith('Bearer ')) {
         return res.status(401).json({error: 'Unoutherized'})
     }
@@ -12,7 +12,7 @@ const protect = async (req,res,next) => {
         const session = jwt.verify(token,process.env.JWT_SECRET)
 
         if (!session) {
-            res.status(401).json({error: 'Unautherized'})
+            return res.status(401).json({error: 'Unautherized'})
         }
 
         req.session = session

@@ -10,6 +10,32 @@ const EmployeeForm = ({ initialData, onSuccess, onCancel }) => {
     const handleSubmit = async (e) => {
         e.preventDefault()
         setLoading(true)
+        try {
+            const formData = new FormData(e.currentTarget)
+            const payload = Object.fromEntries(formData.entries())
+
+            const token = localStorage.getItem('token')
+            const url = `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/employee${isEditMode ? `/${initialData.id || initialData._id}` : ''}`
+            const response = await fetch(url, {
+                method: isEditMode ? 'PUT' : 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: token ? `Bearer ${token}` : ''
+                },
+                body: JSON.stringify(payload)
+            })
+
+            const data = await response.json()
+            if (!response.ok) {
+                throw new Error(data?.error || data?.message || 'Failed to save employee')
+            }
+
+            onSuccess?.(data)
+        } catch (error) {
+            console.error(error)
+        } finally {
+            setLoading(false)
+        }
     }
     return (
         <form onSubmit={handleSubmit} className='space-y-6 max-w-3xl animate-fade-in'>
@@ -67,11 +93,11 @@ const EmployeeForm = ({ initialData, onSuccess, onCancel }) => {
                     </div>
                     <div>
                         <label className='block mb-2'>Allowances</label>
-                        <input type='number' min='0' step='0.01' name='Allowances' required defaultValue={initialData?.allowances || 0} />
+                        <input type='number' min='0' step='0.01' name='allowances' required defaultValue={initialData?.allowances || 0} />
                     </div>
                      <div>
                         <label className='block mb-2'>Deductions</label>
-                        <input type='number' min='0' step='0.01' name='Deductions' required defaultValue={initialData?.Deductions || 0} />
+                        <input type='number' min='0' step='0.01' name='deductions' required defaultValue={initialData?.deductions || 0} />
                     </div>
 
                     {isEditMode &&  ( <div>
@@ -98,21 +124,21 @@ const EmployeeForm = ({ initialData, onSuccess, onCancel }) => {
                         {!isEditMode && (
                     <div className='sm:col-span-2'>
                         <label className='block mb-2'>Temporary Password</label>
-                        <input name='Password' type='password' required  />
+                        <input name='password' type='password' required  />
                     </div>
 
                         )}
                         {isEditMode && (
                     <div className='sm:col-span-2'>
                         <label className='block mb-2'>Change Password (optional)</label>
-                        <input name='Password' type='password' placeholder='Leave blank to keep current'/>
+                        <input name='password' type='password' placeholder='Leave blank to keep current'/>
                     </div>
 
                         )}
 
                     <div className='sm:col-span-2'>
                         <label className='block mb-2'>System Role</label>
-                        <select name="role" defaultValue={isEditMode?.user?.role || 'EMPLOYEE'}>
+                        <select name="role" defaultValue={initialData?.user?.role || 'EMPLOYEE'}>
                             <option value="EMPLOYEE">Employee</option>
                             <option value="ADMIN">Admin</option>
                         </select>

@@ -11,11 +11,11 @@ const employSchema = new mongoose.Schema({
    basicSalary: {type:Number, default: 0,required:true},
    allowances: {type:Number, default: 0,required:true},
    deductions: {type:Number, default: 0,required:true},
-   eploymentStatus: {type:String, default: "ACTIVE",enum:['ACTIVE','INACTIVE'] ,required:true},
+   employmentStatus: {type:String, default: "ACTIVE",enum:['ACTIVE','INACTIVE'] ,required:true},
    joinDate: {type:Date, required:true},
    isDeleted: {type:Boolean,default:false},
    bio: {type:String,default:''},
-   Department: {type:String,enum: DEPARTMENTS,default:''},
+   department: {type:String,enum: DEPARTMENTS,default:'Engineering'},
 
    
 

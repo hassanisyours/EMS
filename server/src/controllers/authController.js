@@ -1,4 +1,5 @@
 import userModel from "../models/UserModel.js";
+import bcrypt from "bcryptjs";
 import jwt from 'jsonwebtoken'
 // Login for employee and admin 
 // POST api/auth/login 
@@ -12,11 +13,11 @@ const loginConrtoller = async (req,res) => {
             return res.status(400).json({error: 'email or password is required'})
         }
 
-        const user = await userModel.findOne(email);
+        const user = await userModel.findOne({ email });
 
         if (!user) {
-            res.status(401).json({error:"Invalid credential" })
-        };
+            return res.status(401).json({error:"Invalid credential" })
+        }
         if (role_type === 'admin' && user.role !== 'ADMIN') {
             return res.status(401).json({error: 'Not autherized as admin'})
         }
@@ -24,10 +25,10 @@ const loginConrtoller = async (req,res) => {
             return res.status(401).json({error: 'Not autherized as EMPLOYEE'})
         }
         
-        const isValid = bcrypt.compare(password,user.password)
+        const isValid = await bcrypt.compare(password,user.password)
         
         if (!isValid) {
-            res.status(401).json({error:"Invalid credential" })
+            return res.status(401).json({error:"Invalid credential" })
         }
 
         const payload = {
@@ -63,8 +64,8 @@ const sessionController = async (req,res) => {
 const changePasswordController = async (req,res) => {
     try {
     const session = req.session;
-        const {currentPasswrod, newPassword} = req.body;
-            if (!currentPasswrod || !newPassword) {
+        const {currentPassword, newPassword} = req.body;
+            if (!currentPassword || !newPassword) {
                 return res.status(400).json({error: 'both passwords are required'})
 
             }
@@ -75,7 +76,7 @@ const changePasswordController = async (req,res) => {
                 return res.status(404).json({error:'user not found'})
             }
 
-            const isValid  = bcrypt.compare(currentPasswrod,user.password)
+            const isValid  = await bcrypt.compare(currentPassword,user.password)
             if (!isValid) {
                 return res.status(400).json({error:'Current password is incorrect'})
             }

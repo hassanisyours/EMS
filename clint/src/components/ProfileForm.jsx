@@ -1,5 +1,5 @@
 import { Loader2, Save, User } from 'lucide-react'
-import React, { useDebugValue, useState } from 'react'
+import React, { useState } from 'react'
 
 const ProfileForm = ({ initialData, onSuccess }) => {
     const [loading, setLoading] = useState(false)
@@ -8,6 +8,36 @@ const ProfileForm = ({ initialData, onSuccess }) => {
 
     const handleSubmit = async (e) => {
         e.preventDefault()
+        try {
+            setLoading(true)
+            seterror('')
+            setMessage('')
+
+            const formData = new FormData(e.currentTarget)
+            const payload = Object.fromEntries(formData.entries())
+            const token = localStorage.getItem('token')
+
+            const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/profile`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: token ? `Bearer ${token}` : ''
+                },
+                body: JSON.stringify(payload)
+            })
+
+            const data = await response.json()
+            if (!response.ok) {
+                throw new Error(data?.error || 'Failed to update profile')
+            }
+
+            setMessage('Profile updated successfully')
+            onSuccess?.()
+        } catch (err) {
+            seterror(err.message)
+        } finally {
+            setLoading(false)
+        }
     }
 
     return (

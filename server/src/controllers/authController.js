@@ -24,12 +24,10 @@ const loginConrtoller = async (req,res) => {
         if (role_type === 'employee' && user.role !== 'EMPLOYEE') {
             return res.status(401).json({error: 'Not autherized as EMPLOYEE'})
         }
+
         
-        const isValid = await bcrypt.compare(password,user.password)
         
-        if (!isValid) {
-            return res.status(401).json({error:"Invalid credential" })
-        }
+      
 
         const payload = {
             userId: user._id.toString(),

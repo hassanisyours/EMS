@@ -1,5 +1,6 @@
 import { Loader2, Save, User } from 'lucide-react'
 import React, { useState } from 'react'
+import api from '../api/axios'
 
 const ProfileForm = ({ initialData, onSuccess }) => {
     const [loading, setLoading] = useState(false)
@@ -15,26 +16,12 @@ const ProfileForm = ({ initialData, onSuccess }) => {
 
             const formData = new FormData(e.currentTarget)
             const payload = Object.fromEntries(formData.entries())
-            const token = localStorage.getItem('token')
-
-            const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/profile`, {
-                method: 'PATCH',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: token ? `Bearer ${token}` : ''
-                },
-                body: JSON.stringify(payload)
-            })
-
-            const data = await response.json()
-            if (!response.ok) {
-                throw new Error(data?.error || 'Failed to update profile')
-            }
+            await api.patch('/profile', payload)
 
             setMessage('Profile updated successfully')
             onSuccess?.()
         } catch (err) {
-            seterror(err.message)
+            seterror(err.response?.data?.error || err.response?.data?.message || err.message)
         } finally {
             setLoading(false)
         }
@@ -47,7 +34,7 @@ const ProfileForm = ({ initialData, onSuccess }) => {
             {error && (
                 <div className='bg-rose-50 text-rose-700 p-4 rounded-xl text-sm border border-rose-200 mb-6 flex items-start gap-3'>
                     <div className='w-1.5 h-1.5 rounded-full bg-rose-500 mt-1.5 shrink-0' />
-                    {error}402
+                    {error}
                 </div>
             )}
             {message && (

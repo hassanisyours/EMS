@@ -1,5 +1,7 @@
-import { CalendarDaysIcon, FileText, Loader2, LoaderIcon, Send, X } from 'lucide-react';
+import { CalendarDaysIcon, FileText, Loader2, Send, X } from 'lucide-react';
 import React, { useState } from 'react'
+import api from '../../api/axios'
+import toast from 'react-hot-toast'
 
 
 const ApplyLeaveModel = ({open, onClose, onSuccess}) => {
@@ -13,6 +15,26 @@ const ApplyLeaveModel = ({open, onClose, onSuccess}) => {
 
     const handleSubmit = async (e) => {
             e.preventDefault()
+            setLoading(true)
+            try {
+                const formData = new FormData(e.currentTarget)
+                const payload = {
+                    type: formData.get('type'),
+                    startDate: formData.get('date'),
+                    endDate: formData.get('endDate'),
+                    reason: formData.get('reason'),
+                }
+
+                await api.post('/leave', payload)
+                toast.success('Leave request submitted')
+                e.currentTarget.reset()
+                onSuccess?.()
+                onClose?.()
+            } catch (error) {
+                toast.error(error.response?.data?.error || error.response?.data?.message || error.message || 'Failed to submit leave request')
+            } finally {
+                setLoading(false)
+            }
     }
 
     if (!open) {

@@ -1,5 +1,7 @@
 import { Loader2Icon, Plus, X } from 'lucide-react'
 import React, { useState } from 'react'
+import api from '../../api/axios'
+import toast from 'react-hot-toast'
 
 const GeneratePayslipsForm = ({employees, onSuccess}) => {
     const [isOpen, setIsOpen] = useState(false)
@@ -15,6 +17,20 @@ const GeneratePayslipsForm = ({employees, onSuccess}) => {
 
     const handleSubmit = async (e) => {
         e.preventDefault()
+        setLoading(true)
+        try {
+            const formData = new FormData(e.currentTarget)
+            const payload = Object.fromEntries(formData.entries())
+            await api.post('/payslip', payload)
+            toast.success('Payslip generated')
+            e.currentTarget.reset()
+            setIsOpen(false)
+            onSuccess?.()
+        } catch (error) {
+            toast.error(error.response?.data?.error || error.response?.data?.message || error.message || 'Failed to generate payslip')
+        } finally {
+            setLoading(false)
+        }
     }
     return(
         <div onClick={()=>{setIsOpen(false)}} className='fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4'>
@@ -29,7 +45,8 @@ const GeneratePayslipsForm = ({employees, onSuccess}) => {
 
                     <div>
                         <label className='block text-sm font-medium text-slate-700 mb-2'>Employee</label>
-                        <select name='employeeId' required>
+                        <select name='employeeId' required defaultValue="">
+                            <option value="">Select employee</option>
                             {employees.map((emp)=>{
                                 return <option key={emp.id} value={emp.id}>{emp.firstName} {emp.lastName} ({emp.position})</option>
                             })}
@@ -40,7 +57,8 @@ const GeneratePayslipsForm = ({employees, onSuccess}) => {
                             <div className='grid grid-cols-2 gap-4'>
                                 <div>
                                     <label className='block text-sm font-medium text-slate-700 mb-2'>Month</label>
-                                    <select name="month" required>
+                                    <select name="month" required defaultValue="">
+                                        <option value="">Select month</option>
                                         {Array.from({length:12},(_,i)=> i+1).map((month)=>(<option key={month} value={month}>{month}</option>))}
                                     </select>
                                 </div>

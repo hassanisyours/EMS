@@ -1,8 +1,9 @@
 import React, { useCallback, useEffect, useState } from 'react'
-import { dummyEmployeeData, dummyPayslipData } from '../assets/assets'
 import Loading from '../components/Loading'
 import PayslipList from '../components/payslips/PayslipList'
 import GeneratePayslipsForm from '../components/payslips/GeneratePayslipsForm'
+import api from '../api/axios'
+import { useAuth } from '../context/AuthContext'
 
 
 const Payslips = () => {
@@ -10,32 +11,40 @@ const Payslips = () => {
   const [payslips, setPayslips] = useState([])
   const [loading, setLoading] = useState(true)
   const [employee, setEmployee] = useState([])
-  const isAdmin = true
+  const [error, setError] = useState('')
+  const {user} = useAuth()
+  const isAdmin = user?.role === 'ADMIN'
 
   const fetchPayslipsData = useCallback(async () => {
-    await setPayslips(dummyPayslipData)
-    setTimeout(() => {
-        setLoading(false)
-    }, 1000);   
+    try {
+      setError('')
+      const [payslipResponse, employeeResponse] = await Promise.all([
+        api.get('/payslip'),
+        isAdmin ? api.get('/employee') : Promise.resolve({ data: [] }),
+      ])
+      setPayslips(payslipResponse.data?.data || [])
+      if (isAdmin) {
+        setEmployee(employeeResponse.data || [])
+      }
+    } catch (error) {
+      setError(error.response?.data?.error || error.response?.data?.message || error.message || 'Failed to load payslips')
+    } finally {
+      setLoading(false)
+    }
     },
-    [],
+    [isAdmin],
   )
 
 
   useEffect(() => {
       fetchPayslipsData()
   }, [fetchPayslipsData])
-  
-  useEffect(() => {
-    if (isAdmin) {
-        setEmployee(dummyEmployeeData)
-    }
-  }, [isAdmin])
 
 
-  
+      
 
   if(loading) return <Loading/>
+  if (error) return <p className='text-center text-rose-500 py-12'>{error}</p>
 
   return (
     <div className='animate-fade-in'>

@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { dummyPayslipData } from '../assets/assets';
 import Loading from '../components/Loading'
 import { format } from 'date-fns';
+import api from '../api/axios';
 const PrintPayslips = () => {
   const {id} = useParams();
 
@@ -11,11 +11,23 @@ const PrintPayslips = () => {
 
 
   useEffect(() => {
-    setpayslip(dummyPayslipData.find((slip)=>slip._id=== id ))
-
-    setTimeout(() => {
-        setLoading(false)
-    }, 1000);
+    let active = true
+    const fetchPayslip = async () => {
+      try {
+        const { data } = await api.get(`/payslip/${id}`)
+        if (!active) return
+        setpayslip(data)
+      } catch (error) {
+        if (!active) return
+        setpayslip(null)
+      } finally {
+        if (active) setLoading(false)
+      }
+    }
+    fetchPayslip()
+    return () => {
+      active = false
+    }
   }, [id])
 
 
@@ -27,7 +39,7 @@ const PrintPayslips = () => {
     <div className='max-w-2xl mx-auto p-8 bg-white animate-fade-in'>
       <div className='text-center border-b border-slate-200 pb-6 mb-8'>
         <h1 className='text-2xl font-bold text-slate-900 tracking-tight'>PAYSLIP</h1>
-        <p className='text-slate-500 text-sm mt-1'>{format(new Date(payslip.year, payslip.month -1),'MMMM yyyy')}</p>
+        <p className='text-slate-500 text-sm mt-1'>{format(new Date(Number(payslip.year), Number(payslip.month) - 1, 1),'MMMM yyyy')}</p>
       </div>
 
       <div className='grid grid-cols-2 gap-6 mb-8'>
@@ -45,7 +57,7 @@ const PrintPayslips = () => {
           </div>
           <div>
             <p className='text-sm text-slate-400 uppercase tracking-wider mb-1'>Period</p>
-            <p className='font-semibold text-slate-900'>{format(new Date(payslip.year, payslip.month -1),'MMMM yyyy')}</p>
+            <p className='font-semibold text-slate-900'>{format(new Date(Number(payslip.year), Number(payslip.month) - 1, 1),'MMMM yyyy')}</p>
           </div>
       </div>
       <div className='rounded-xl border border-slate-200 overflow-hidden mb-8'>

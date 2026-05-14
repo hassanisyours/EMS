@@ -1,5 +1,6 @@
 import { Loader2Icon, LockIcon, X } from 'lucide-react'
 import React, { useState } from 'react'
+import api from '../api/axios'
 
 const ChangePassModel = ({open,onClose}) => {
   const [loading, setLoading] = useState(false)
@@ -11,26 +12,12 @@ const ChangePassModel = ({open,onClose}) => {
       setMessage({type: '', text: ''})
       const formData = new FormData(e.currentTarget)
       const payload = Object.fromEntries(formData.entries())
-      const token = localStorage.getItem('token')
-
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/auth/change-password`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: token ? `Bearer ${token}` : ''
-        },
-        body: JSON.stringify(payload)
-      })
-
-      const data = await response.json()
-      if (!response.ok) {
-        throw new Error(data?.error || 'Failed to update password')
-      }
+      await api.post('/auth/change-password', payload)
 
       setMessage({type: 'success', text: 'Password updated successfully'})
       e.currentTarget.reset()
     } catch (error) {
-      setMessage({type: 'error', text: error.message})
+      setMessage({type: 'error', text: error.response?.data?.error || error.response?.data?.message || error.message})
     } finally {
       setLoading(false)
     }
@@ -44,7 +31,7 @@ const ChangePassModel = ({open,onClose}) => {
     <div onClick={onClose} className='fixed inset-0 z-10 items-center flex justify-center p-4'>
       <div className='absolute inset-0 bg-black/40 backdrop-blur-sm'/>
 
-      <div className='relative bg-white rounded-2xl shadow-2xl w-full max-w-md animate-fade-in'>
+      <div className='relative bg-white rounded-2xl shadow-2xl w-full max-w-md animate-fade-in' onClick={(e) => e.stopPropagation()}>
 
         <div className='flex items-center justify-between p-6 pb-0'>
           <h2 className='text-lg font-medium text-slate-900 flex items-center gap-2'><LockIcon className='w-5 h-5 text-slate-400' /> Change Password</h2>

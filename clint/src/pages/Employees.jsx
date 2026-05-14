@@ -1,9 +1,11 @@
 import React, { useCallback, useEffect, useState } from 'react'
-import { dummyEmployeeData,DEPARTMENTS } from '../assets/assets'
+import { DEPARTMENTS } from '../assets/assets'
 import {CrossIcon, Plus, Search, X} from 'lucide-react'
 import Loading from '../components/Loading'
 import EmployeeCard from '../components/EmployeeCard'
 import EmployeeForm from '../components/EmployeeForm'
+import api from '../api/axios'
+import toast from 'react-hot-toast'
 
 const Employee = () => {
 
@@ -13,15 +15,20 @@ const Employee = () => {
   const [SelectDept, setSelectDept] = useState('')
   const [EditEmployee, setEditEmployee] = useState(null)
   const [showCreateModel, setShowCreateModel] = useState(false)
+  const [error, setError] = useState('')
   const fetchEmployee = useCallback(
-    () => {
+    async () => {
       setLoading(true)
-      setEmployees(dummyEmployeeData.filter((emp)=>(SelectDept ? emp.department === SelectDept : emp )))
-
-      setTimeout(() => {
-          setLoading(false)
-      }, 1000);
-
+      try {
+        setError('')
+        const query = SelectDept ? `?department=${encodeURIComponent(SelectDept)}` : ''
+        const { data } = await api.get(`/employee${query}`)
+        setEmployees(data || [])
+      } catch (error) {
+        setError(error.response?.data?.error || error.response?.data?.message || error.message || 'Failed to load employees')
+      } finally {
+        setLoading(false)
+      }
     },
     [SelectDept],
   )
@@ -32,6 +39,15 @@ const Employee = () => {
   
   
   const filtered = employees.filter((emp)=> `${emp.firstName} ${emp.lastName} ${emp.position}`.toLowerCase().includes(search.toLowerCase()))
+  const handleDelete = async (employee) => {
+    try {
+      await api.delete(`/employee/${employee.id || employee._id}`)
+      toast.success('Employee deleted')
+      fetchEmployee()
+    } catch (error) {
+      toast.error(error.response?.data?.error || error.response?.data?.message || error.message || 'Failed to delete employee')
+    }
+  }
 
   return (
     <div className='animate-fade-in'>
@@ -64,13 +80,14 @@ const Employee = () => {
 
 
       {/* Employee Card  */}
+          {error && <p className='mb-4 text-rose-500'>{error}</p>}
           {loading ? (
             <div className='flex justify-center p-12'>
                 <div className='animate-spin h-8 w-8 border-2 border-indigo-600 border-t-transparent rounded-full'/>
           </div>
           ): (
             <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5'>
-                {filtered.length === 0 ? (<p className='col-span-2 text-center py-16 text-slate-400 bg-white rounded-2xl border border-dashed border-slate-200'>No Employees found </p>) : (filtered.map((emp)=>(<EmployeeCard key={emp.id} employee={emp} onDelete={fetchEmployee} onEdit={(e)=>setEditEmployee(e)} />)))}
+                {filtered.length === 0 ? (<p className='col-span-2 text-center py-16 text-slate-400 bg-white rounded-2xl border border-dashed border-slate-200'>No Employees found </p>) : (filtered.map((emp)=>(<EmployeeCard key={emp.id} employee={emp} onDelete={handleDelete} onEdit={(e)=>setEditEmployee(e)} />)))}
             </div>
           )}
 

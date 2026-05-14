@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react'
-import { dummyProfileData } from '../assets/assets'
 import Loading from '../components/Loading'
 import { Lock } from 'lucide-react'
 import ProfileForm from '../components/ProfileForm'
 import ChangePassModel from '../components/ChangePassModel'
+import api from '../api/axios'
 const Settings = () => {
 
     const [profile, setProfile] = useState(null)
@@ -12,21 +12,17 @@ const Settings = () => {
 
     const fetchProfile = async () => {
       try {
-        const token = localStorage.getItem('token')
-        const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/profile`, {
-          headers: {
-            Authorization: token ? `Bearer ${token}` : ''
-          }
-        })
-
-        if (!response.ok) {
-          throw new Error('Failed to load profile')
-        }
-
-        const data = await response.json()
+        const { data } = await api.get('/profile')
         setProfile(data)
       } catch (error) {
-        setProfile(dummyProfileData)
+        setProfile({
+          firstName: 'Admin',
+          lastName: '',
+          email: '',
+          position: 'Administrator',
+          bio: '',
+          isDeleted: false,
+        })
       } finally {
         setLoading(false)
       }

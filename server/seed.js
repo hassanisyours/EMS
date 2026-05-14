@@ -3,11 +3,11 @@ import connectDB from './src/config/db.js'
 import userModel from './src/models/UserModel.js'
 import bcrypt from 'bcryptjs'
 
-const temporaryPassword = 'admin123'
+const temporaryPassword = process.env.ADMIN_PASSWORD || 'admin123'
 
 async function registerAdmin() {
     try {
-        const ADMIN_EMAIL = process.env.ADMIN_EMAIL
+        const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@example.com'
 
         if (!ADMIN_EMAIL) {
             console.error('Missing ADMIN_EMAIL env variable')
@@ -16,14 +16,21 @@ async function registerAdmin() {
 
         await connectDB()
 
+        const hashPass = await bcrypt.hash(temporaryPassword, 10)
+
         const existingAdmin = await userModel.findOne({ email: ADMIN_EMAIL })
 
         if (existingAdmin) {
-            console.log('User already exists as role:', existingAdmin.role)
+            existingAdmin.role = 'ADMIN'
+            existingAdmin.password = hashPass
+            await existingAdmin.save()
+
+            console.log('Admin user updated')
+            console.log('\nEmail:', existingAdmin.email)
+            console.log('Temporary password:', temporaryPassword)
+            console.log('\nChange the password after login.')
             process.exit(0)
         }
-
-        const hashPass = await bcrypt.hash(temporaryPassword, 10)
 
         const admin = await userModel.create({
             email: ADMIN_EMAIL,

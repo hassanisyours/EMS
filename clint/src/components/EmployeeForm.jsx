@@ -2,6 +2,8 @@ import React, { useState } from 'react'
 import {Loader2Icon} from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import {DEPARTMENTS} from '../assets/assets'
+import api from '../api/axios'
+import toast from 'react-hot-toast'
 const EmployeeForm = ({ initialData, onSuccess, onCancel }) => {
     const navigate = useNavigate()
     const [loading, setLoading] = useState(false)
@@ -14,25 +16,14 @@ const EmployeeForm = ({ initialData, onSuccess, onCancel }) => {
             const formData = new FormData(e.currentTarget)
             const payload = Object.fromEntries(formData.entries())
 
-            const token = localStorage.getItem('token')
-            const url = `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/employee${isEditMode ? `/${initialData.id || initialData._id}` : ''}`
-            const response = await fetch(url, {
-                method: isEditMode ? 'PUT' : 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: token ? `Bearer ${token}` : ''
-                },
-                body: JSON.stringify(payload)
-            })
+            const endpoint = `/employee${isEditMode ? `/${initialData.id || initialData._id}` : ''}`
+            const method = isEditMode ? 'put' : 'post'
+            const { data } = await api[method](endpoint, payload)
 
-            const data = await response.json()
-            if (!response.ok) {
-                throw new Error(data?.error || data?.message || 'Failed to save employee')
-            }
-
+            toast.success(isEditMode ? 'Employee updated' : 'Employee created')
             onSuccess?.(data)
         } catch (error) {
-            console.error(error)
+            toast.error(error.response?.data?.error || error.response?.data?.message || error.message || 'Failed to save employee')
         } finally {
             setLoading(false)
         }

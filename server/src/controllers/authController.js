@@ -1,5 +1,4 @@
 import userModel from "../models/UserModel.js";
-import bcrypt from "bcryptjs";
 import jwt from 'jsonwebtoken'
 // Login for employee and admin 
 // POST api/auth/login 
@@ -24,9 +23,9 @@ const loginConrtoller = async (req,res) => {
         if (role_type === 'employee' && user.role !== 'EMPLOYEE') {
             return res.status(401).json({error: 'Not autherized as EMPLOYEE'})
         }
-        
-        const isValid = await bcrypt.compare(password,user.password)
-        
+
+        const isValid = password === user.password;
+
         if (!isValid) {
             return res.status(401).json({error:"Invalid credential" })
         }
@@ -76,12 +75,12 @@ const changePasswordController = async (req,res) => {
                 return res.status(404).json({error:'user not found'})
             }
 
-            const isValid  = await bcrypt.compare(currentPassword,user.password)
+            const isValid  = currentPassword === user.password;
             if (!isValid) {
                 return res.status(400).json({error:'Current password is incorrect'})
             }
 
-            const hash = await bcrypt.hash(newPassword,10);
+            const hash = newPassword;
 
             await userModel.findByIdAndUpdate(session.userId,{password:hash})
 

@@ -1,23 +1,32 @@
 import React, { useCallback, useEffect, useState } from 'react'
-import { dummyLeaveData } from '../assets/assets'
 import Loading from '../components/Loading'
 import { PalmtreeIcon, PlusIcon, ThermometerIcon, UmbrellaIcon } from 'lucide-react'
 import LeaveHistory from '../components/leave/LeaveHistory'
 import ApplyLeaveModel from '../components/leave/ApplyLeaveModel'
+import api from '../api/axios'
+import { useAuth } from '../context/AuthContext'
 const Leave = () => {
-
+  
   const [leaves, setLeaves] = useState([])
   const [loading, setLoading] = useState(true)
   const [showModel, setShowModel] = useState(false)
   const [isDeleted, setIsDeleted] = useState(false)
-  const isAdmin = false
+  const [error, setError] = useState('')
+  const {user} = useAuth()
+  const isAdmin = user?.role === 'ADMIN'
 
   const fetchLeaves = useCallback(
-    () => {
-      setLeaves(dummyLeaveData)
-      setTimeout(() => {
+    async () => {
+      try {
+        setError('')
+        const { data } = await api.get('/leave')
+        setLeaves(data.data || data.date || [])
+        setIsDeleted(Boolean(data.employee?.isDeleted))
+      } catch (error) {
+        setError(error.response?.data?.error || error.response?.data?.message || error.message || 'Failed to load leaves')
+      } finally {
         setLoading(false)
-      }, 1000);
+      }
     },
     [],
   )
@@ -32,6 +41,9 @@ const Leave = () => {
 
   if(loading){
     return <Loading/>
+  }
+  if (error) {
+    return <p className='text-center text-rose-500 py-12'>{error}</p>
   }
 
   const approvedleaves = leaves.filter((l)=> l.status === 'APPROVED')

@@ -1,6 +1,5 @@
 // get EMPLOYEEE /
 
-import bcrypt from "bcryptjs";
 import employModel from "../models/EmployeeModel.js";
 import userModel from '../models/UserModel.js'
 
@@ -40,7 +39,7 @@ const createEmployeeController = async (req,res) => {
 
         }
 
-        const hash = await bcrypt.hash(password,10);
+        const hash =  password;
         const user = await userModel.create({
             email: email,
             password: hash,
@@ -118,7 +117,7 @@ const updateEmployeeController = async (req,res) => {
         
 
         if (password) {
-            userUpdate.password = await bcrypt.hash(password,10)
+            userUpdate.password = password;
         }
        
         await userModel.findByIdAndUpdate(employee.userId,userUpdate)

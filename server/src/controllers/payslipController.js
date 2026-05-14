@@ -42,14 +42,17 @@ export const getPayslipController = async (req, res) => {
         const isAdmin = session.role === 'ADMIN';
 
         if (isAdmin) {
-            const payslip = await payslipModel.find().populate(session.employeeId).sort({createdAt: -1});
+            const payslip = await payslipModel.find().populate('employeeId').sort({createdAt: -1});
 
             const data = payslip.map((p)=>{
                 const obj = p.toObject();
                 return {
                     ...obj,
                     id: obj._id.toString(),
-                    employee : obj.employeeId,
+                    employee : obj.employeeId ? {
+                        ...obj.employeeId,
+                        id: obj.employeeId._id?.toString()
+                    } : null,
                     employeeId: obj.employeeId?._id?.toString()
                 }
 
@@ -61,11 +64,14 @@ export const getPayslipController = async (req, res) => {
         }else{
             const employee = await employeeModel.findOne({userId: session.userId})
             if (!employee) {
-                res.status(404).json({error: 'Not Found'})
+                return res.status(404).json({error: 'Not Found'})
             }
             const payslip = await payslipModel.find({employeeId: employee._id}).sort({createdAt: -1});
 
-            return res.json({data: payslip})
+            return res.json({data: payslip.map((p)=>({
+                ...p.toObject(),
+                id: p._id.toString(),
+            }))})
         }
         
     } catch (error) {
@@ -80,12 +86,15 @@ export const getPayslipByIdController = async (req, res) => {
         const paySlip = await payslipModel.findById(req.params.id).populate('employeeId').lean();
 
         if (!paySlip) {
-            res.status(404).json({error: 'Not found'})
+            return res.status(404).json({error: 'Not found'})
         }
         const result = {
             ...paySlip,
             id: paySlip._id.toString(),
-            employee: paySlip.employeeId
+            employee: paySlip.employeeId ? {
+                ...paySlip.employeeId,
+                id: paySlip.employeeId._id?.toString(),
+            } : null
         }
         return res.json(result)
 

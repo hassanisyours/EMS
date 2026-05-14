@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useState } from "react"
-import { dummyAttendanceData } from "../assets/assets"
 import Loading from "../components/Loading"
 import CheckinBtn from "../components/attendance/CheckinBtn"
 import AttendanceStates from "../components/attendance/AttendanceStates"
 import AttendanceHistory from "../components/attendance/AttendanceHistory"
+import api from "../api/axios"
 
 
 
@@ -12,13 +12,20 @@ const Attendance = () => {
   const [history, sethistory] = useState([])
   const [loading, setloading] = useState(true)
   const [isDeleted, setIsDeleted] = useState(false)
+  const [error, setError] = useState('')
 
   const fetchData = useCallback(
-    () => {
-      sethistory(dummyAttendanceData)
-      setTimeout(() => {
+    async () => {
+      try {
+        setError('')
+        const { data } = await api.get('/attendance')
+        sethistory(data.data || [])
+        setIsDeleted(Boolean(data.employee?.isDeleted))
+      } catch (error) {
+        setError(error.response?.data?.error || error.response?.data?.message || error.message || 'Failed to load attendance')
+      } finally {
         setloading(false)
-      }, 1000);
+      }
     },
     [],
   )
@@ -30,6 +37,9 @@ const Attendance = () => {
 
   if (loading) {
     return <Loading/>
+  }
+  if (error) {
+    return <p className="text-center text-rose-500 py-12">{error}</p>
   }
 
   const today = new Date()

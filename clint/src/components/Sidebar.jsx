@@ -1,18 +1,19 @@
 import React, { useEffect, useState } from 'react'
-import { Link, useLocation } from 'react-router-dom'
-import { dummyProfileData } from '../assets/assets'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { CalendarIcon, ChevronRightIcon, DollarSignIcon, FileTextIcon, LayoutGridIcon, LogOutIcon, MenuIcon, SettingsIcon, UserIcon, XIcon } from 'lucide-react'
+import { useAuth } from '../context/AuthContext'
+import api from '../api/axios'
 const Sidebar = () => {
     const { pathname } = useLocation()
+    const navigate = useNavigate()
     const [username, setUsername] = useState('')
     const [mobileOpen, setMobileOpen] = useState(false)
-
+    const {user,logout} = useAuth();
     useEffect(() => {
-
-        setUsername(dummyProfileData.firstName + ' ' + dummyProfileData.lastName)
-
-
-    }, [])
+            api.get('/profile').then(({data})=>{
+                if (data.firstName) setUsername(`${data.firstName} ${data.lastName || ''} `.trim()) 
+            }).catch(() => setUsername(''))
+    }, [user])
 
     // close mobile sidebar on route change
 
@@ -22,7 +23,7 @@ const Sidebar = () => {
 
     }, [pathname])
 
-    const role = localStorage.getItem('role') || 'EMPLOYEE';
+    const role = user?.role || 'EMPLOYEE';
     const navItems = [
         {name: 'Dashboard', href: '/dashboard', icon: LayoutGridIcon},
         role === 'ADMIN' ?  {name: 'Employees', href: '/employees', icon: UserIcon} : {name: 'Attendance', href: '/attendance', icon: CalendarIcon},
@@ -32,10 +33,9 @@ const Sidebar = () => {
 
     ]
 
-    const handleLogout = ()=>{
-        localStorage.removeItem('token')
-        localStorage.removeItem('role')
-        window.location.href = '/login'
+    const handleLogout = async ()=>{
+        await logout()
+        navigate('/login', { replace: true })
     }
 
     const SideberContent = (

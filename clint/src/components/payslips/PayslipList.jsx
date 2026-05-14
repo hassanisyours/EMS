@@ -30,7 +30,7 @@ const PayslipList = ({ payslips, isAdmin }) => {
                     {isAdmin && (
                       <td className='text-slate-900'>{item.employee?.firstName} {item.employee?.lastName}</td>
                     )}
-                    <td className='text-slate-500'>{format(new Date(item.year - item.month - 1), 'MMMM yyyy')}</td>
+                    <td className='text-slate-500'>{format(new Date(Number(item.year), Number(item.month) - 1, 1), 'MMMM yyyy')}</td>
                     <td className='text-slate-500'>${item.basicSalary?.toLocaleString()}</td>
                     <td className='text-slate-800 font-medium'>${item.netSalary?.toLocaleString()}</td>
                     <td className='text-center'>

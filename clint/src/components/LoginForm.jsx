@@ -2,6 +2,8 @@ import React, { useState } from 'react'
 import LoginLeftSide from './LoginLeftSide'
 import { Link, useNavigate } from 'react-router-dom'
 import { ArrowLeftIcon, EyeIcon, EyeOffIcon, Loader2Icon } from 'lucide-react'
+import { useAuth } from '../context/AuthContext'
+import toast from 'react-hot-toast'
 
 const LoginForm = ({role, title, subtitle}) => {
     const navigate = useNavigate()
@@ -12,35 +14,22 @@ const LoginForm = ({role, title, subtitle}) => {
     const [showPassword, setshowPassword] = useState(false)
     const [error, seterror] = useState('')
     const [loading, setloading] = useState(false)
-
+    const {login}  = useAuth()
 
     const handleSubmit = async (e) => {
-        e.preventDefault();
-        try {
-            setloading(true)
-            seterror('')
-            const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/auth/login`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ email, password, role_type: role })
-            })
-
-            const data = await response.json()
-
-            if (!response.ok) {
-                throw new Error(data?.error || 'Login failed')
-            }
-
-            localStorage.setItem('token', data.token)
-            localStorage.setItem('role', data?.user?.role || role.toUpperCase())
-            navigate('/dashboard')
-        } catch (err) {
-            seterror(err.message)
-        } finally {
-            setloading(false)
-        }
+      e.preventDefault();
+      seterror('')
+      setloading(true)
+      try {
+        await login(email, password, role)
+        navigate('/dashboard')
+      } catch (error) {
+        const message = error.response?.data?.error || error.message || 'login failed'
+        seterror(message)
+        toast.error(message)
+      } finally {
+        setloading(false)
+      }
     }
 
   return (

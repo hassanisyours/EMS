@@ -34,13 +34,17 @@ const clockinOutController = async (req, res) => {
             status: isLate ? 'LATE': 'PRESENT'
         })
 
-        await inngest.send({
-            name: 'employee/check-out',
-            data: {
-                employeeId : employee._id,
-                attendanceId : attendance._id
-            }
-        })
+        try {
+            await inngest.send({
+                name: 'employee/check-out',
+                data: {
+                    employeeId : employee._id,
+                    attendanceId : attendance._id
+                }
+            })
+        } catch (error) {
+            console.error('attendance event dispatch failed', error)
+        }
 
         return res.json({success: true, type:'CHECK_IN',data: attendance })
     }else if(!existing.checkOut){
